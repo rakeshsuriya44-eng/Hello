@@ -1,36 +1,32 @@
-name: CI
-
-on:
-  push:
-    branches: [ main ]
+name: Build APK
+on: [push]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
+      - name: Install System Dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y openjdk-17-jdk zip unzip git python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev cmake libffi-dev libssl-dev
+          pip install --upgrade pip
+          pip install buildozer cython==0.29.33
 
-    - name: Install dependencies
-      run: |
-        sudo apt update
-        sudo apt install -y git zip unzip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libffi-dev libssl-dev
-        pip install --upgrade pip
-        pip install cython==0.29.33 buildozer
+      - name: Build APK
+        run: |
+          buildozer android debug
 
-    - name: Build with Buildozer
-      run: |
-        buildozer -v android debug
-
-    - name: Upload APK Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: package
-        path: bin/*.apk
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: jarvis-apk
+          path: bin/*.apk
         
         
